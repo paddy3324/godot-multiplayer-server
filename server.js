@@ -1,16 +1,26 @@
 const WebSocket = require("ws");
 
-const wss = new WebSocket.Server({ port: 3000 });
+// ✅ REQUIRED for Render
+const port = process.env.PORT || 3000;
+const wss = new WebSocket.Server({ port });
 
 let rooms = {};
 
-console.log("Server running on port 3000");
+console.log("Server running on port", port);
 
 wss.on("connection", (ws) => {
     console.log("Player connected");
 
     ws.on("message", (message) => {
-        const data = JSON.parse(message);
+        let data;
+
+        // safety check (prevents crashes)
+        try {
+            data = JSON.parse(message);
+        } catch (e) {
+            console.log("Invalid JSON:", message);
+            return;
+        }
 
         // JOIN ROOM
         if (data.type === "join") {
